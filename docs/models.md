@@ -217,7 +217,22 @@ with open("inswapper_weight.bin", "wb") as f:
 
 > 注意：确保导出的是**最后**一个 initializer（正是本项目所需矩阵）；fp16 模型不宜用于导出权重。
 
-### 4.3 验证模型完整性 / Verify models
+### 4.3 输出路径规则 / Output Path Rule
+
+**输出文件保存到 targetFace（第二张图片/身份来源图）所在目录**，文件名 `{basename}_output.jpg`。
+
+```rust
+// worker.rs
+let target_path = std::path::Path::new(&task.target_face_path);
+let output_dir = target_path.parent().unwrap_or_else(|| Path::new("."));
+let base_name = target_path.file_stem().unwrap_or("output");
+let output_path = output_dir.join(format!("{base_name}_output.jpg"));
+```
+
+- 若文件已存在，追加毫秒时间戳 `{basename}_output_{timestamp}.jpg` 避免覆盖
+- `id` 字段仅用于任务取消，不再影响输出路径
+
+### 4.4 验证模型完整性 / Verify models
 
 模型缺失的典型日志：
 

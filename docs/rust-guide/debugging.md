@@ -209,5 +209,8 @@ python tests/compare_outputs.py \
     │
     ├─ 没换脸？ → 检查 paste_back 仿射方向
     │
+    ├─ 输出路径错误？ → 检查 target_face_path 是否正确传递
+    │   （应基于 targetFace 路径计算输出目录，而非 id）
+    │
     └─ 仍然失败？ → 运行回归测试，对比 Python 基线
 ```

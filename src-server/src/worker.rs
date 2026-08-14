@@ -19,6 +19,8 @@ pub struct Task {
     pub id: String,
     pub input_image: Vec<u8>,
     pub target_image: Vec<u8>,
+    /// Path of the target face image (used for output path)
+    pub target_face_path: String,
     pub sender: mpsc::Sender<TaskResult>,
 }
 
@@ -102,7 +104,7 @@ async fn worker_loop(
         info!("Processing task: {}", task.id);
         
         // Process task
-        let result = process_task(task.id.clone(), task.input_image, task.target_image, &tinyface).await;
+        let result = process_task(task.id.clone(), task.input_image, task.target_image, &task.target_face_path, &tinyface).await;
         
         // Send result back
         if let Err(e) = task.sender.send(TaskResult {
@@ -120,6 +122,7 @@ async fn process_task(
     id: String,
     input_image: Vec<u8>,
     target_image: Vec<u8>,
+    target_face_path: &str,
     tinyface: &Arc<Mutex<TinyFace>>,
 ) -> Result<String, String> {
     use image::GenericImageView;
@@ -146,11 +149,11 @@ async fn process_task(
     
     drop(face); // Release lock before I/O
     
-    // Save output to same directory as input image
+    // Save output to same directory as target face image (second image)
     // Add timestamp if file already exists to avoid overwriting
-    let input_path = std::path::Path::new(&id);
-    let output_dir = input_path.parent().unwrap_or_else(|| std::path::Path::new("."));
-    let base_name = input_path.file_stem()
+    let target_path = std::path::Path::new(target_face_path);
+    let output_dir = target_path.parent().unwrap_or_else(|| std::path::Path::new("."));
+    let base_name = target_path.file_stem()
         .and_then(|s| s.to_str())
         .unwrap_or("output");
     

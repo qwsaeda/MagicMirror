@@ -204,6 +204,7 @@ async fn create_task(
         id: payload.id.clone(),
         input_image,
         target_image,
+        target_face_path: payload.target_face.clone(),
         sender: tx,
     };
 
