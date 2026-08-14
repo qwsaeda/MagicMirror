@@ -26,8 +26,9 @@
 
 📖 **开发者文档：**
 
-- [架构设计](./architecture.md) — 进程模型、Worker 系统、REST API、便携版打包
+- [架构设计](../architecture.md) — 进程模型、Worker 系统、REST API、便携版打包
 - [Rust 实现指南](../rust-server.md) — 为什么用 Rust、ort (ONNX Runtime) 使用方式、踩过的坑与经验
+- [模型清单与下载](../models.md) — 模型功能、下载地址、存放目录与使用方式
 
 ## 快速开始
 
