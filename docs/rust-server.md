@@ -85,8 +85,39 @@ src-server/
 | `/` | GET | 健康检查 |
 | `/status` | GET | 运行状态 + worker 数 |
 | `/prepare` | POST | 等待模型加载（180s 超时） |
-| `/task` | POST | 提交换脸任务（120s 超时） |
+| `/task` | POST | 提交换脸任务（同步等待，120s 超时） |
 | `/task/{id}` | DELETE | 取消任务（返回 405） |
+
+### 文件写入架构 / File Write Architecture
+
+**关键设计决策：由 server.exe 写入文件，而非前端 MagicMirror**
+
+```typescript
+// 前端只发请求、收路径
+const result = await Server.createTask({
+  id: taskId,
+  inputImage,
+  targetFace,
+});
+setOutput(result);  // 显示，不写文件
+```
+
+```rust
+// server 直接写入输出文件
+let mut file = std::fs::File::create(&output_path)?;
+let mut encoder = jpeg_encoder::Encoder::new(&mut file, 95);
+encoder.encode(rgb.as_raw(), width, height, ColorType::Rgb)?;
+```
+
+**原因：**
+1. Tauri 安全模型限制前端直接访问文件系统
+2. server 是推理服务，天然持有文件 I/O 权限
+3. 架构清晰：前端只管 UI，server 只管推理 + 文件操作
+
+**输出路径规则（已修正）：**
+- 输出保存到 **`targetFace` 所在目录**（第二张图片/身份来源图）
+- 文件名 `{basename}_output.jpg`，重名加时间戳
+- `id` 字段仅用于任务取消，不影响输出路径
 
 ---
 

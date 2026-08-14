@@ -151,11 +151,14 @@ async fn process_task(
     
     // Save output to same directory as target face image (second image)
     // Add timestamp if file already exists to avoid overwriting
+    info!("Target face path: {}", target_face_path);
     let target_path = std::path::Path::new(target_face_path);
     let output_dir = target_path.parent().unwrap_or_else(|| std::path::Path::new("."));
+    info!("Output directory: {}", output_dir.display());
     let base_name = target_path.file_stem()
         .and_then(|s| s.to_str())
         .unwrap_or("output");
+    info!("Output base name: {}", base_name);
     
     let mut output_path = output_dir.join(format!("{base_name}_output.jpg"));
     if output_path.exists() {

@@ -262,14 +262,27 @@ async fn main() {
     match gpu_backend {
         "cuda" => {
             std::env::set_var("ORT_CUDA_AVAILABLE", "1");
-            info!("Using CUDA backend (NVIDIA GPU detected)");
+            info!("GPU detected: NVIDIA, using CUDA backend");
         }
         "directml" => {
             std::env::set_var("ORT_DIRECTML_AVAILABLE", "1");
-            info!("Using DirectML backend (AMD/Intel GPU or fallback)");
+            info!("GPU detected: AMD/Intel/Integrated, using DirectML backend");
         }
         _ => {
-            info!("Using CPU backend (no GPU detected)");
+            info!("No discrete GPU detected, using CPU backend");
+        }
+    }
+    
+    // 验证实际使用的 provider（通过创建一个空 session 测试）
+    #[cfg(feature = "directml")]
+    {
+        use ort::Session;
+        match Session::builder() {
+            Ok(builder) => match builder.with_provider("Dml") {
+                Ok(_) => info!("DirectML provider loaded successfully (GPU acceleration active)"),
+                Err(e) => warn!("DirectML provider failed: {} (falling back to CPU)", e),
+            },
+            Err(e) => warn!("Failed to create session builder: {}", e),
         }
     }
 

@@ -188,7 +188,7 @@ server.exe --workers auto  # 自动计算
 ```json
 POST /task
 {
-  "id": "/path/to/input.jpg",     // 同时作为输出路径锚点
+  "id": "unique_task_id",     // 任务标识，用于取消
   "inputImage": "/path/to/source.jpg",   // 待换脸图（被替换方）
   "targetFace": "/path/to/identity.jpg"  // 身份来源图
 }
@@ -196,12 +196,31 @@ POST /task
 
 **响应：**
 ```json
-{ "taskId": "...", "result": "/path/to/input_output.jpg" }
+{ "taskId": "...", "result": "/path/to/output.jpg" }
 ```
 
-**输出路径规则：**
-- 输出保存到 **`id` 文件所在目录**（即输入图同目录），文件名 `{basename}_output.jpg`
+**输出路径规则（已修正）：**
+- 输出保存到 **`targetFace` 所在目录**（第二张图片/身份来源图），文件名 `{basename}_output.jpg`
 - 若文件已存在，追加毫秒时间戳 `{basename}_output_{timestamp}.jpg` 避免覆盖
+- `id` 字段仅用于任务取消，不再影响输出路径
+
+**文件写入架构：**
+- **写入方**：`server.exe` 直接写入文件系统（`std::fs::File::create`）
+- **读取方**：前端 MagicMirror 只接收输出路径，通过 HTTP 响应返回
+- **原因**：Tauri 安全模型限制前端直接写文件系统；server 作为推理服务天然持有文件 I/O 权限
+
+```
+前端 MagicMirror                          server.exe
+     │                                        │
+     │  POST /task { id, inputImage, ... }    │
+     │───────────────────────────────────────▶│
+     │                                    [推理]
+     │◀───────────────────────────────────────│
+     │  { result: "/path/to/output.jpg" }     │
+     │                                        │
+     ▼ 显示图片                                ▼ 写入文件
+（HTTP 响应返回路径）                    （server 直接 fs::write）
+```
 
 ### 3.5 日志控制
 
