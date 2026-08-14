@@ -1,0 +1,157 @@
+name: Build Server (Rust)
+
+on:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  models:
+    name: Download Model Files
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Model Files
+        id: models
+        run: |
+          VERSION=$(awk -F ' = "' '/version =/ {print $2}' src-python/pyproject.toml | tr -d '"')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          mkdir -p src-python/models && cd src-python/models
+          BASE_URL="https://github.com/idootop/TinyFace/releases/download/models-1.0.0"
+          curl -# -O -L "${BASE_URL}/arcface_w600k_r50.onnx"
+          curl -# -O -L "${BASE_URL}/gfpgan_1.4.onnx"
+          curl -# -O -L "${BASE_URL}/inswapper_128_fp16.onnx"
+          curl -# -O -L "${BASE_URL}/scrfd_2.5g.onnx"
+          cd ${{ github.workspace }}
+      - name: Upload models
+        uses: actions/upload-artifact@v4
+        with:
+          name: models
+          path: src-python/models
+          if-no-files-found: error
+    outputs:
+      version: ${{ steps.models.outputs.version }}
+
+  build-for-macos:
+    name: macOS
+    needs: models
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-apple-darwin
+            build: macos
+            os: macos-13
+            arch: x86_64
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Models
+        uses: actions/download-artifact@v4
+        with:
+          name: models
+          path: src-python/models
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+      - name: Build Rust Server
+        run: |
+          cd src-server
+          cargo build --release
+          cd ..
+      - name: Package Server
+        run: |
+          mkdir -p out/server
+          cp src-server/target/release/magic-server out/server/server
+          cp -r src-python/magic out/server/
+          cp src-python/server.py out/server/
+          mkdir -p out/server/models
+          cp src-python/models/*.onnx out/server/models/
+          cd out
+          zip -r server_${{ matrix.build }}_${{ matrix.arch }}.zip server
+      - name: Upload Server
+        uses: actions/upload-artifact@v4
+        with:
+          name: server_${{ matrix.build }}_${{ matrix.arch }}
+          path: out/*.zip
+
+  build-for-windows:
+    name: Windows
+    needs: models
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-pc-windows-msvc
+            build: windows
+            os: windows-2019
+            arch: x86_64
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Models
+        uses: actions/download-artifact@v4
+        with:
+          name: models
+          path: src-python/models
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+      - name: Build Rust Server
+        shell: pwsh
+        run: |
+          cd src-server
+          cargo build --release
+          cd ..
+      - name: Package Server
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path out/server -Force | Out-Null
+          cp src-server/target/release/magic-server.exe out/server/server.exe
+          cp -r src-python/magic out/server/
+          cp src-python/server.py out/server/
+          New-Item -ItemType Directory -Path out/server/models -Force | Out-Null
+          cp src-python/models/*.onnx out/server/models/
+          Compress-Archive -Path out/server -DestinationPath out/server_${{ matrix.build }}_${{ matrix.arch }}.zip -Force
+      - name: Upload Server
+        uses: actions/upload-artifact@v4
+        with:
+          name: server_${{ matrix.build }}_${{ matrix.arch }}
+          path: out/*.zip
+
+  release:
+    name: Release
+    needs: [models, build-for-macos, build-for-windows]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: server_*
+          path: dist
+          merge-multiple: true
+      - name: Release Server v${{ needs.models.outputs.version }}
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: Server v${{ needs.models.outputs.version }}
+          tag: server-v${{ needs.models.outputs.version }}
+          body: MagicMirror Server v${{ needs.models.outputs.version }} (Rust HTTP Layer)
+          draft: true
+          prerelease: false
+          removeArtifacts: true
+          artifacts: dist/*.zip

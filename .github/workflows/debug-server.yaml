@@ -1,0 +1,82 @@
+name: Build Server (Debug Only)
+on:
+  workflow_dispatch:
+
+jobs:
+  models:
+    name: Download Model Files
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Model Files
+        id: models
+        run: |
+          VERSION=$(awk -F ' = "' '/version =/ {print $2}' src-python/pyproject.toml | tr -d '"')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          mkdir -p src-python/models && cd src-python/models
+          BASE_URL="https://github.com/idootop/TinyFace/releases/download/models-1.0.0"
+          curl -# -O -L "${BASE_URL}/arcface_w600k_r50.onnx"
+          curl -# -O -L "${BASE_URL}/gfpgan_1.4.onnx"
+          curl -# -O -L "${BASE_URL}/inswapper_128_fp16.onnx"
+          curl -# -O -L "${BASE_URL}/scrfd_2.5g.onnx"
+          cd ${{ github.workspace }}
+      - name: Upload models
+        uses: actions/upload-artifact@v4
+        with:
+          name: models
+          path: src-python/models
+          if-no-files-found: error
+    outputs:
+      version: ${{ steps.models.outputs.version }}
+
+  build-for-windows:
+    name: Windows
+    needs: models
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-pc-windows-msvc
+            build: windows
+            os: windows-2019
+            arch: x86_64
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Models
+        uses: actions/download-artifact@v4
+        with:
+          name: models
+          path: src-python/models
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.10.11
+          cache: "pip"
+          cache-dependency-path: "**/requirements.txt"
+      - name: Install Python Dependencies
+        run: |
+          cd src-python
+          pip install -r requirements.txt
+          pip install -e .
+          cd ${{ github.workspace }}
+      - name: Build Server
+        shell: pwsh
+        run: |
+          python -m nuitka --standalone --assume-yes-for-downloads `
+            --mingw64 --windows-console-mode=force `
+            --include-data-files="src-python/models/*.onnx=models/" `
+            --output-dir=out src-python/server.py
+          cd out/server.dist
+          Compress-Archive -Path * -DestinationPath "../server_${{ matrix.build }}_${{ matrix.arch }}_debug.zip"
+          cd ${{ github.workspace }}
+      - name: Upload Server
+        uses: actions/upload-artifact@v4
+        with:
+          name: server_${{ matrix.build }}_${{ matrix.arch }}_debug
+          path: out/*.zip

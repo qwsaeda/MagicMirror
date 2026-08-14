@@ -1,0 +1,39 @@
+
+> magic@1.0.0 tauri F:\MagicMirror
+> tauri "build"
+
+    Running beforeBuildCommand `pnpm build`
+
+> magic@1.0.0 build F:\MagicMirror
+> tsc && vite build
+
+[36mvite v5.3.1 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 92 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                         [39m[1m[2m  0.47 kB[22m[1m[22m[2m │ gzip:  0.30 kB[22m
+[2mdist/[22m[32massets/menu-CZj_5ifE.webp          [39m[1m[2m 11.26 kB[22m[1m[22m
+[2mdist/[22m[32massets/mirror-bg-D8SS0eyb.svg      [39m[1m[2m 15.76 kB[22m[1m[22m[2m │ gzip:  7.31 kB[22m
+[2mdist/[22m[32massets/magic-mirror-CipFkC0c.svg   [39m[1m[2m 15.80 kB[22m[1m[22m[2m │ gzip:  7.36 kB[22m
+[2mdist/[22m[32massets/mirror-input-BAMxhMMh.webp  [39m[1m[2m 91.28 kB[22m[1m[22m
+[2mdist/[22m[32massets/mirror-me-CD9E5Rgh.webp     [39m[1m[2m129.19 kB[22m[1m[22m
+[2mdist/[22m[35massets/index-Dv0is0Zx.css          [39m[1m[2m  5.48 kB[22m[1m[22m[2m │ gzip:  1.76 kB[22m
+[2mdist/[22m[36massets/index-CsKnxAU_.js           [39m[1m[2m258.64 kB[22m[1m[22m[2m │ gzip: 81.77 kB[22m
+[32m✓ built in 4.43s[39m
+   Compiling magic v1.0.0 (F:\MagicMirror\src-tauri)
+    Finished `release` profile [optimized] target(s) in 1m 35s
+    Built application at: F:\MagicMirror\src-tauri\target\release\MagicMirror.exe
+    Info Verifying wix package
+    Downloading https://github.com/wixtoolset/wix3/releases/download/wix3141rtm/wix314-binaries.zip
+    Info validating hash
+    Info extracting WIX
+    Info Target: x64
+    Downloading https://go.microsoft.com/fwlink/p/?LinkId=2124703
+    Running candle for "main.wxs"
+    Running light to produce F:\MagicMirror\src-tauri\target\release\bundle\msi\MagicMirror_1.0.0_x64_en-US.msi
+    Info Verifying NSIS package
+    Downloading https://github.com/tauri-apps/binary-releases/releases/download/nsis-3/nsis-3.zip
+failed to bundle project: `https://github.com/tauri-apps/binary-releases/releases/download/nsis-3/nsis-3.zip: Connection Failed: Connect error: 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。 (os error 10060)`
+    Error failed to bundle project: `https://github.com/tauri-apps/binary-releases/releases/download/nsis-3/nsis-3.zip: Connection Failed: Connect error: 由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。 (os error 10060)`
+ ELIFECYCLE  Command failed with exit code 1.

@@ -1,0 +1,19 @@
+{
+  "Downloading resources, please wait": "Downloading resources, please wait ({{progress}}%)...",
+  "Extracting resources, please wait": "Extracting resources, please wait ({{progress}}%)...",
+  "*If the download is stuck or fails, please download and initialize manually. ": "*If the download is stuck or fails, please download and initialize manually. ",
+  "View tutorial": "View tutorial",
+  "Starting... First load may take longer, please wait.": "Starting... First load may take longer, please wait.",
+  "Face swapping... This may take a few seconds, please wait.": "Face swapping... This may take a few seconds, please wait.",
+  "First, drag your front-facing photo into the mirror.": "First, drag your front-facing photo into the mirror.",
+  "Then, drag the photo you want to swap faces with into the mirror.": "Now, drag the photo you want to swap faces with into the mirror.",
+  "Face swap successful! Image saved locally.": "Face swap successful! Image saved locally.",
+  "Face swap failed. Try a different image.": "Face swap failed. Try a different image.",
+  "Quit": "Quit",
+  "Language": "Language",
+  "Switch": "Switch",
+  "About": "About",
+  "downloadURL": "https://github.com/idootop/MagicMirror/releases/download/server-v1.0.0/server_{{type}}_{{arch}}.zip",
+  "downloadTutorial": "https://thread-sphynx-f26.notion.site/MagicMirror-User-Guide-147aea89ebf680c189cdd76f5668261a",
+  "aboutLink": "https://github.com/idootop/MagicMirror"
+}

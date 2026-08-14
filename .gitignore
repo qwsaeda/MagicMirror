@@ -1,0 +1,46 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode
+.idea
+*.swp
+
+# Node / Frontend
+node_modules
+dist
+
+# Python
+.mypy_cache
+__pycache__
+*.egg-info
+.venv
+*.env
+data
+temp
+
+# Models (large ONNX binaries, ~774MB, do NOT commit)
+models
+
+# Build artifacts
+out
+target
+
+# Rust (src-server)
+src-server/target
+
+# Tauri
+src-tauri/target
+src-tauri/gen/schemas
+
+# Vendor binaries (server.exe + models, packaged at release time, not committed)
+src-tauri/vendor
+
+# Server runtime logs
+srv_out.log
+srv_err.log
+
+# Test fixtures (local test data)
+test.*
+tests/fixtures

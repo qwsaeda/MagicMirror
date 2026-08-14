@@ -1,0 +1,19 @@
+{
+  "Downloading resources, please wait": "正在下载资源文件，请耐心等待({{progress}}%)...",
+  "Extracting resources, please wait": "正在解压资源文件，请耐心等待({{progress}}%)...",
+  "*If the download is stuck or fails, please download and initialize manually. ": "*如果下载进度卡住或失败，请手动下载并初始化。",
+  "View tutorial": "查看教程",
+  "Starting... First load may take longer, please wait.": "启动中... 首次加载较慢，请耐心等待～",
+  "Face swapping... This may take a few seconds, please wait.": "换脸中... 这可能需要一些时间，请耐心等待",
+  "First, drag your front-facing photo into the mirror.": "首先，把你的正脸照「拖拽」到镜子里",
+  "Then, drag the photo you want to swap faces with into the mirror.": "然后，把你想要换脸的照片「拖拽」到镜子里",
+  "Face swap successful! Image saved locally.": "换脸成功，图片已保存至本地",
+  "Face swap failed. Try a different image.": "换脸失败，换张图片再试试",
+  "Quit": "退出",
+  "Language": "切换语言",
+  "Switch": "翻转镜像",
+  "About": "关于",
+  "downloadURL": "https://github.com/idootop/MagicMirror/releases/download/server-v1.0.0/server_{{type}}_{{arch}}.zip",
+  "downloadTutorial": "https://ccnpyvkdfkte.feishu.cn/wiki/LAn6w4NqwiqeKmkXBrLc4MEBnDh",
+  "aboutLink": "https://github.com/idootop/MagicMirror"
+}
