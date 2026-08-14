@@ -351,7 +351,7 @@ std::env::set_var("ORT_LOGGING_LEVEL", "Error");
 | 问题 | 答案 |
 |------|------|
 | 需要 GPU 吗？ | 不需要。`ort` 使用 DirectML 后端，CPU 即可。 |
-| 模型从哪来？ | 见 [架构文档](./architecture.md) 第 5.2 节模型清单。 |
+| 模型从哪来？ | 见 [模型清单与下载指南](./models.md)（含下载地址与存放方式）。 |
 | 如何增加并发？ | `server.exe --workers N`。默认自动计算。 |
 | 输出文件在哪？ | 输入图同目录，`{basename}_output.jpg`，重名加时间戳。 |
 | ort 日志刷屏？ | `ORT_LOGGING_LEVEL=Error` 已内置抑制。 |

@@ -54,6 +54,7 @@ This repo is a **deeply reworked fork**: the inference layer is fully rewritten 
 |-----------|--------------------|
 | [📐 架构设计 / Architecture](./docs/architecture.md) | 系统总览、进程模型、Worker 系统、REST API、便携版打包、图像处理对齐 OpenCV 的关键点 |
 | [🦀 Rust 实现指南 / Rust Server Guide](./docs/rust-server.md) | Rust 重写动机、实现细节、**ort (ONNX Runtime) 使用方式**、踩过的坑与经验教训 |
+| [🧠 模型清单 / Models Guide](./docs/models.md) | 模型功能、输入输出规格、**下载地址**、存放目录与使用方式 |
 | [📦 安装 / Install (EN)](./docs/en/install.md) | 安装与系统要求 / Installation & system requirements |
 | [🎮 使用 / Usage (EN)](./docs/en/usage.md) | 使用教程 / Usage guide |
 | [❓ 常见问题 / FAQ (EN)](./docs/en/faq.md) | 常见问题 / Frequently asked questions |
