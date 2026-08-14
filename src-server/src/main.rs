@@ -56,6 +56,39 @@ struct TaskRequest {
     target_face: String,
 }
 
+/// 检测 GPU 类型，返回推荐的后端
+/// Detects available GPU and returns recommended backend
+#[cfg(target_os = "windows")]
+fn detect_gpu_backend() -> &'static str {
+    // 使用 WMIC 查询显卡信息
+    let output = std::process::Command::new("wmic")
+        .args(["path", "win32_VideoController", "get", "Name"])
+        .output()
+        .ok()
+        .and_then(|o| String::from_utf8(o.stdout).ok());
+    
+    match output {
+        Some(ref info) if info.to_lowercase().contains("nvidia") => {
+            tracing::info!("Detected NVIDIA GPU, CUDA backend recommended");
+            "cuda"
+        }
+        Some(ref info) if info.to_lowercase().contains("amd") || info.to_lowercase().contains("radeon") => {
+            tracing::info!("Detected AMD GPU, DirectML backend recommended");
+            "directml"
+        }
+        Some(_) | None => {
+            tracing::info!("No discrete GPU detected or using integrated graphics, DirectML will be used as fallback");
+            "directml"
+        }
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+fn detect_gpu_backend() -> &'static str {
+    tracing::info!("Non-Windows platform, using CPU backend by default");
+    "cpu"
+}
+
 /// Parse command line arguments
 fn parse_args() -> (Option<usize>,) {
     let args: Vec<String> = std::env::args().collect();
@@ -222,6 +255,22 @@ async fn main() {
     // 禁用 ONNX Runtime 的详细日志和警告
     std::env::set_var("ORT_LOGGING_LEVEL", "Error");
     std::env::set_var("OMP_WAIT_POLICY", "PASSIVE");  // 减少 OpenMP 线程干扰
+
+    // GPU 自动检测并设置环境变量
+    let gpu_backend = detect_gpu_backend();
+    match gpu_backend {
+        "cuda" => {
+            std::env::set_var("ORT_CUDA_AVAILABLE", "1");
+            info!("Using CUDA backend (NVIDIA GPU detected)");
+        }
+        "directml" => {
+            std::env::set_var("ORT_DIRECTML_AVAILABLE", "1");
+            info!("Using DirectML backend (AMD/Intel GPU or fallback)");
+        }
+        _ => {
+            info!("Using CPU backend (no GPU detected)");
+        }
+    }
 
     // Parse command line arguments
     let (num_workers,) = parse_args();

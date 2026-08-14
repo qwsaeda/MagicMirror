@@ -27,8 +27,12 @@
 📖 **开发者文档：**
 
 - [架构设计](../architecture.md) — 进程模型、Worker 系统、REST API、便携版打包
-- [Rust 实现指南](../rust-server.md) — 为什么用 Rust、ort (ONNX Runtime) 使用方式、踩过的坑与经验
-- [模型清单与下载](../models.md) — 模型功能、下载地址、存放目录与使用方式
+- [Rust Server 概览](../rust-server.md) — 为什么用 Rust、目录结构、API 端点
+- [子进程管理](../rust-guide/child-process.md) — spawn/kill 逻辑、残留清理、退出兜底
+- [GPU 支持](../rust-guide/gpu-support.md) — DirectML/CUDA 配置、自动检测、国产卡适配
+- [ort 踩坑记录](../rust-guide/ort-pitfalls.md) — 已修复 bug、调试经验
+- [调试方法](../rust-guide/debugging.md) — 逐阶段对比、性能基准
+- [模型清单与下载](../models.md) — 模型功能、下载地址、存放目录
 
 ## 快速开始
 
