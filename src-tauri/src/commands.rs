@@ -72,16 +72,22 @@ pub async fn spawn_server() -> Result<bool, String> {
             // 已退出的子进程，清空引用后继续启动新的
             *lock_server_child() = None;
         } else {
-            // 端口被占用但占用者不是本进程派生的子进程：视为残留（如旧版残留、
-            // 手动启动的控制台进程），先清理再重新启动，保证受控。
-            cleanup_orphan_servers();
-            // 等待端口释放
-            for _ in 0..30 {
-                std::thread::sleep(std::time::Duration::from_millis(200));
-                if !check_server_running() {
-                    break;
-                }
+            // 端口被占用但占用者不是本进程派生的子进程
+            // 检查是否是合法子进程（通过 WMIC 查询父进程）
+            let is_our_child = check_if_our_child();
+            
+            if is_our_child {
+                // 是之前的子进程（可能重启后 PID 变化），复用
+                return Ok(true);
             }
+            
+            // 不是我们的子进程，记录日志但不强制清理
+            // 让用户决定：继续使用现有 server 还是手动关闭后重启
+            eprintln!("WARNING: Port 8023 is occupied by another process (PID not ours).");
+            eprintln!("         MagicMirror will try to start its own server.");
+            eprintln!("         If binding fails, please close the existing server first.");
+            
+            // 尝试启动新 server，如果端口冲突会失败
         }
     }
 
@@ -157,6 +163,52 @@ pub fn is_server_running() -> bool {
 fn check_server_running() -> bool {
     use std::net::TcpStream;
     TcpStream::connect("localhost:8023").is_ok()
+}
+
+/// 检查端口占用进程是否是我们之前的子进程
+/// 通过 WMIC 查询父进程是否是当前 MagicMirror 进程
+fn check_if_our_child() -> bool {
+    let magic_mirror_pid = std::process::id();
+    
+    // 使用 netstat 获取占用 8023 端口的 PID
+    let output = std::process::Command::new("netstat")
+        .args(["-ano"])
+        .output()
+        .ok()
+        .and_then(|o| String::from_utf8(o.stdout).ok());
+    
+    if let Some(ref info) = output {
+        for line in info.lines() {
+            if line.contains(":8023") && line.contains("LISTENING") {
+                // 提取 PID（最后一列）
+                if let Some(pid_str) = line.split_whitespace().last() {
+                    if let Ok(pid) = pid_str.parse::<u32>() {
+                        // 查询这个 PID 的父进程
+                        let parent_output = std::process::Command::new("wmic")
+                            .args(["process", "where", &format!("ProcessId={}", pid), "get", "ParentProcessId"])
+                            .output()
+                            .ok()
+                            .and_then(|o| String::from_utf8(o.stdout).ok());
+                        
+                        if let Some(ref parent_info) = parent_output {
+                            for parent_line in parent_info.lines().skip(1) {
+                                let parent_line = parent_line.trim();
+                                if let Ok(parent_pid) = parent_line.parse::<u32>() {
+                                    // 如果父进程是当前的 MagicMirror，说明是合法子进程
+                                    if parent_pid == magic_mirror_pid {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    
+    false
 }
 
 #[tauri::command]
