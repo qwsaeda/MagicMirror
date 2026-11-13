@@ -219,18 +219,36 @@ with open("inswapper_weight.bin", "wb") as f:
 
 ### 4.3 输出路径规则 / Output Path Rule
 
-**输出文件保存到 targetFace（第二张图片/身份来源图）所在目录**，文件名 `{basename}_output.jpg`。
+**输出文件保存到 inputImage（第二张图片/被换的图片）所在目录**，文件名 `{basename}_output.jpg`。
 
 ```rust
+// main.rs - 传递 input_image 作为输出路径基准
+let task = worker::Task {
+    id: payload.id.clone(),
+    input_image,
+    target_image,
+    target_face_path: payload.input_image.clone(),  // 输出到第二张图目录
+    sender: tx,
+};
+
 // worker.rs
-let target_path = std::path::Path::new(&task.target_face_path);
-let output_dir = target_path.parent().unwrap_or_else(|| Path::new("."));
-let base_name = target_path.file_stem().unwrap_or("output");
+let target_path = std::path::Path::new(target_face_path);
+let output_dir = target_path.parent()...;
 let output_path = output_dir.join(format!("{base_name}_output.jpg"));
 ```
 
-- 若文件已存在，追加毫秒时间戳 `{basename}_output_{timestamp}.jpg` 避免覆盖
-- `id` 字段仅用于任务取消，不再影响输出路径
+**参数含义：**
+- `inputImage` = 第二张拖入的图片（被换的图片）→ 输出保存到这里
+- `targetFace` = 第一张拖入的图片（原人脸/身份来源）→ 用于提取身份特征
+
+**示例：**
+```
+拖入顺序:
+  1. D:\Photos\self.jpg (原人脸) → targetFace
+  2. D:\Photos\target.jpg (被换的图片) → inputImage
+
+输出: D:\Photos\target_output.jpg
+```
 
 ### 4.4 验证模型完整性 / Verify models
 

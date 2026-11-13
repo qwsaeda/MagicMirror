@@ -24,10 +24,8 @@ tracing-subscriber = "0.3"
 dirs = "5"
 sys-info = "0.9"
 
-# ONNX Runtime
+# ONNX Runtime - 同时包含 DirectML 和 CPU provider
 ort = { version = "2.0.0-rc.13", features = ["directml"] }
-# 可选：启用 CUDA 支持（NVIDIA GPU）
-# ort = { version = "2.0.0-rc.13", features = ["cuda", "directml", "ondemand"] }
 
 # Image processing
 image = "0.25"

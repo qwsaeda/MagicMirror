@@ -69,11 +69,11 @@ fn detect_gpu_backend() -> &'static str {
     
     match output {
         Some(ref info) if info.to_lowercase().contains("nvidia") => {
-            tracing::info!("Detected NVIDIA GPU, CUDA backend recommended");
+            tracing::info!("Detected NVIDIA GPU, will attempt CUDA first, fallback to DirectML");
             "cuda"
         }
         Some(ref info) if info.to_lowercase().contains("amd") || info.to_lowercase().contains("radeon") => {
-            tracing::info!("Detected AMD GPU, DirectML backend recommended");
+            tracing::info!("Detected AMD GPU, using DirectML backend");
             "directml"
         }
         Some(_) | None => {
@@ -204,7 +204,7 @@ async fn create_task(
         id: payload.id.clone(),
         input_image,
         target_image,
-        target_face_path: payload.target_face.clone(),
+        target_face_path: payload.input_image.clone(),  // 输出到第二张图（被换的图片）目录
         sender: tx,
     };
 
@@ -255,36 +255,11 @@ async fn main() {
 
     // 禁用 ONNX Runtime 的详细日志和警告
     std::env::set_var("ORT_LOGGING_LEVEL", "Error");
-    std::env::set_var("OMP_WAIT_POLICY", "PASSIVE");  // 减少 OpenMP 线程干扰
+    std::env::set_var("OMP_WAIT_POLICY", "PASSIVE");
 
-    // GPU 自动检测并设置环境变量
-    let gpu_backend = detect_gpu_backend();
-    match gpu_backend {
-        "cuda" => {
-            std::env::set_var("ORT_CUDA_AVAILABLE", "1");
-            info!("GPU detected: NVIDIA, using CUDA backend");
-        }
-        "directml" => {
-            std::env::set_var("ORT_DIRECTML_AVAILABLE", "1");
-            info!("GPU detected: AMD/Intel/Integrated, using DirectML backend");
-        }
-        _ => {
-            info!("No discrete GPU detected, using CPU backend");
-        }
-    }
-    
-    // 验证实际使用的 provider（通过创建一个空 session 测试）
-    #[cfg(feature = "directml")]
-    {
-        use ort::Session;
-        match Session::builder() {
-            Ok(builder) => match builder.with_provider("Dml") {
-                Ok(_) => info!("DirectML provider loaded successfully (GPU acceleration active)"),
-                Err(e) => warn!("DirectML provider failed: {} (falling back to CPU)", e),
-            },
-            Err(e) => warn!("Failed to create session builder: {}", e),
-        }
-    }
+    // 自动检测 GPU 并选择最优 backend
+    let use_gpu = detect_gpu_backend() != "cpu";
+    info!("GPU detection result: {}", if use_gpu { "available" } else { "not available" });
 
     // Parse command line arguments
     let (num_workers,) = parse_args();
